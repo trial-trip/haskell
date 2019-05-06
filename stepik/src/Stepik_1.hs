@@ -68,7 +68,7 @@ fibonacci' n
   | n < 1 = (-1) ^ (-n + 1) * fibonacci' (-n)
 
 -- 1.6
---𝑎0=1;𝑎1=2;𝑎2=3;𝑎𝑘+3=𝑎𝑘+2+𝑎𝑘+1−2𝑎𝑘
+--𝑎0=1; 𝑎1=2; 𝑎2=3; 𝑎𝑘+3=𝑎𝑘+2+𝑎𝑘+1−2𝑎𝑘
 seqA' :: Integer -> Integer
 seqA' 0 = 1
 seqA' 1 = 2
@@ -79,5 +79,7 @@ seqA :: Integer -> Integer
 seqA 0 = 1
 seqA 1 = 2
 seqA 2 = 3
-seqA n = (seqA (n - 1)) + (seqA (n - 2)) - 2 * (seqA (n - 3))
-
+seqA n = seqHelper 3 n 3 2 1 where
+  seqHelper current target a b c
+    | current == target = a + b - 2 * c
+    | otherwise = seqHelper (current + 1) target (a + b - 2 * c) a b
