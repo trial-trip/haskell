@@ -1,6 +1,7 @@
 module Stepik_1 where
 
 import           Data.Char
+import Data.List (genericLength)
 
 lenVec3 :: Float -> Float -> Float -> Float
 lenVec3 a b c = sqrt $ a ^ 2 + b ^ 2 + c ^ 2
@@ -49,7 +50,7 @@ fibonacci 0 = 0
 fibonacci 1 = 1
 fibonacci n
   | n > 1 = fibonacci (n - 1) + fibonacci (n - 2)
-  | n < 1 = (-1) ^ (x + 1) * fibonacci (x)
+  | n < 1 = (-1) ^ (x + 1) * fibonacci x
   where
     x = -n
 
@@ -73,7 +74,7 @@ seqA' :: Integer -> Integer
 seqA' 0 = 1
 seqA' 1 = 2
 seqA' 2 = 3
-seqA' n = (seqA' (n - 1)) + (seqA' (n - 2)) - 2 * (seqA' (n - 3))
+seqA' n = seqA' (n - 1) + seqA' (n - 2) - 2 * seqA' (n - 3)
 
 seqA :: Integer -> Integer
 seqA 0 = 1
@@ -83,3 +84,10 @@ seqA n = seqHelper 3 n 3 2 1 where
   seqHelper current target a b c
     | current == target = a + b - 2 * c
     | otherwise = seqHelper (current + 1) target (a + b - 2 * c) a b
+
+
+sumNCount :: Integer -> (Integer, Integer)
+sumNCount x = (sum', count) where
+  sum' = toInteger $ sum $ digitToInt <$> str
+  count = genericLength str
+  str = show $ abs x
