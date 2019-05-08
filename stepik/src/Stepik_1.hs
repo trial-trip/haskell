@@ -1,7 +1,7 @@
 module Stepik_1 where
 
 import           Data.Char
-import Data.List (genericLength)
+import           Data.List (genericLength)
 
 lenVec3 :: Float -> Float -> Float -> Float
 lenVec3 a b c = sqrt $ a ^ 2 + b ^ 2 + c ^ 2
@@ -80,14 +80,105 @@ seqA :: Integer -> Integer
 seqA 0 = 1
 seqA 1 = 2
 seqA 2 = 3
-seqA n = seqHelper 3 n 3 2 1 where
-  seqHelper current target a b c
-    | current == target = a + b - 2 * c
-    | otherwise = seqHelper (current + 1) target (a + b - 2 * c) a b
-
+seqA n = seqHelper 3 n 3 2 1
+  where
+    seqHelper current target a b c
+      | current == target = a + b - 2 * c
+      | otherwise = seqHelper (current + 1) target (a + b - 2 * c) a b
 
 sumNCount :: Integer -> (Integer, Integer)
-sumNCount x = (sum', count) where
-  sum' = toInteger $ sum $ digitToInt <$> str
-  count = genericLength str
-  str = show $ abs x
+sumNCount x = (sum', count)
+  where
+    sum' = toInteger $ sum $ digitToInt <$> str
+    count = genericLength str
+    str = show $ abs x
+
+--integration :: (Double -> Double) -> Double -> Double -> Double
+--integration f a b = undefined
+-- integration sin pi 0
+-- -2.0
+-- 2.3
+class Printable a where
+  toString :: a -> String
+
+instance Printable Bool where
+  toString True  = "true"
+  toString False = "false"
+
+instance Printable () where
+  toString () = "unit type"
+
+instance (Printable a, Printable b) => Printable (a, b) where
+  toString (a, b) = "(" ++ toString a ++ "," ++ toString b ++ ")"
+
+-- 2.4
+class KnownToGork a where
+  stomp :: a -> a
+  doesEnrageGork :: a -> Bool
+
+class KnownToMork a where
+  stab :: a -> a
+  doesEnrageMork :: a -> Bool
+
+class (KnownToGork a, KnownToMork a) =>
+      KnownToGorkAndMork a
+  where
+  stompOrStab :: a -> a
+  stompOrStab a =
+    case (doesEnrageMork a, doesEnrageGork a) of
+      (True, False)  -> stomp a
+      (False, True)  -> stab a
+      (True, True)   -> stomp $ stab a
+      (False, False) -> a
+
+-- 2.4
+ip = show a ++ show b ++ show c ++ show d
+  where
+    a = 127.22
+    b = 4.1
+    c = 20.1
+    d = 2
+
+class (Bounded a, Enum a, Eq a) =>
+      SafeEnum a
+  where
+  ssucc :: a -> a
+  ssucc x =
+    if maxBound == x
+      then minBound
+      else succ x
+  spred :: a -> a
+  spred x =
+    if minBound == x
+      then maxBound
+      else pred x
+
+instance SafeEnum Bool
+
+testValue = ssucc True
+
+avg :: Int -> Int -> Int -> Double
+avg a b c = (fromIntegral a + fromIntegral b + fromIntegral c) / 3
+
+-- 3.1
+nTimes :: a -> Int -> [a]
+nTimes x n = loop x n []
+  where
+    loop y m acc
+      | m == 0 = acc
+      | otherwise = loop y (m - 1) (y : acc)
+
+oddsOnly :: Integral a => [a] -> [a]
+oddsOnly [] = []
+oddsOnly (x:xs)
+  | odd x = x : oddsOnly xs
+  | otherwise = oddsOnly xs
+
+sum2 :: Num a => [a] -> [a] -> [a]
+sum2 (x:xs) (y:ys) = (x + y) : sum2 xs ys
+sum2 xs []         = xs
+sum2 [] ys         = ys
+sum2 [] []         = []
+
+sum3 :: Num a => [a] -> [a] -> [a] -> [a]
+sum3 xs ys = sum2 $ sum2 xs ys
