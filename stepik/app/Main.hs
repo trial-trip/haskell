@@ -4,7 +4,7 @@ import Stepik_1
 
 main :: IO ()
 main = do
-  print $ fibonacci (0)
+  print $ perms [1,2,3]
 --  print $ fibonacci' (1)
 --  print $ fibonacci' (2)
 --  print $ fibonacci' (3)
