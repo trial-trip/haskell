@@ -203,15 +203,13 @@ permsEq xs  = concatMap (\x -> map ((:) x) $ permsEq (filter (/= x) xs)) xs
 
 -- permutations of elements without Eq constraint (assuming their uniqueness)
 perms :: [a] -> [[a]]
-perms []  = [[]]
-perms xs =
-  concatMap(\(z:zs) -> map (z:) (perms zs))
-  $ map (\(index, sameElement) -> offset index sameElement)
-  $ zip [0 ..]
-  $ map (const xs) xs
+perms [] = [[]]
+perms xs = concatMap (\(z:zs) -> map (z :) (perms zs)) $ map (uncurry offset) $ zip [0 ..] $ map (const xs) xs
 
 offset :: Int -> [a] -> [a]
 offset 0 xs     = xs
 offset n []     = []
 offset n (x:xs) = offset (n - 1) xs ++ [x]
 
+fibStream :: [Integer]
+fibStream = 0 : 1 : zipWith (+) fibStream (tail fibStream)
