@@ -213,3 +213,34 @@ offset n (x:xs) = offset (n - 1) xs ++ [x]
 
 fibStream :: [Integer]
 fibStream = 0 : 1 : zipWith (+) fibStream (tail fibStream)
+
+data Odd =
+  Odd Integer
+  deriving (Eq, Show)
+
+instance Enum Odd where
+  succ (Odd x) = Odd (x + 2)
+  pred (Odd x) = Odd (x - 2)
+  enumFrom x = x : enumFrom (succ x)
+  enumFromTo oddX@(Odd x) oddY@(Odd y)
+    | x > y = []
+    | x == y = [oddX]
+    | x < y = oddX : enumFromTo (succ oddX) oddY
+  enumFromThen oddX@(Odd x) oddY@(Odd y) = oddX : enumFromThen oddY (Odd (y + y - x))
+  enumFromThenTo oddX@(Odd x) oddY@(Odd y) oddZ@(Odd z) =
+    if x < y
+      then enumFromThenTo1 oddX oddY oddZ
+      else enumFromThenTo2 oddX oddY oddZ
+    where
+      enumFromThenTo1 oddX@(Odd x) oddY@(Odd y) oddZ@(Odd z)
+        | x > z = []
+        | x == z = [oddX]
+        | x < y = oddX : enumFromThenTo oddY (Odd (y + y - x)) oddZ
+      enumFromThenTo2 oddX@(Odd x) oddY@(Odd y) oddZ@(Odd z)
+        | x < z = []
+        | x == z = [oddX]
+        | x > y = oddX : enumFromThenTo oddY (Odd (y + y - x)) oddZ
+  fromEnum (Odd x) = fromIntegral x
+  toEnum x
+    | odd x = Odd (toInteger x)
+    | otherwise = error "non-odd value"
