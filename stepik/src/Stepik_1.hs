@@ -1,7 +1,7 @@
 module Stepik_1 where
 
 import           Data.Char
-import           Data.List (genericLength)
+import           Data.List (foldl', genericLength, unfoldr)
 
 lenVec3 :: Float -> Float -> Float -> Float
 lenVec3 a b c = sqrt $ a ^ 2 + b ^ 2 + c ^ 2
@@ -244,3 +244,38 @@ instance Enum Odd where
   toEnum x
     | odd x = Odd (toInteger x)
     | otherwise = error "non-odd value"
+
+coins :: (Ord a, Num a) => [a]
+coins = [2, 3, 7]
+
+change :: (Ord a, Num a) => a -> [[a]]
+change 0 = [[]]
+change n = [coin : rest | coin <- coins, n >= coin, rest <- change (n - coin)] -- with sugar
+
+--change n = filter (n >= ) coins >>= (\coin -> map (coin:) (change (n - coin))) -- without sugar
+meanList :: [Double] -> Double
+meanList xs = foldr (+) 0 xs / fromIntegral (length xs)
+
+evenOnly' :: [a] -> [a]
+evenOnly' =
+  fst .
+  foldl'
+    (\(acc, index) x ->
+       ( if odd index
+           then acc ++ [x]
+           else acc
+       , succ index))
+    ([], 0)
+
+evenOnly :: [a] -> [a]
+--evenOnly zs = map snd . filter (even . fst) . zip [1..] $ zs
+--evenOnly = foldr (\pair rest -> if even $ fst pair then snd pair : rest else rest) [] . zip [1..]
+evenOnly (_:x:xs) = x : (evenOnly xs)
+evenOnly _        = []
+
+revRange :: (Char, Char) -> [Char]
+revRange = unfoldr g
+  where
+    g (a, z)
+      | a <= z = Just (z, (a, pred z))
+      | otherwise = Nothing
