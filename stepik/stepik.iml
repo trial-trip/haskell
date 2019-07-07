@@ -7,11 +7,16 @@
       <sourceFolder url="file://$MODULE_DIR$/app" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/test" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/.stack-work" />
+      <excludePattern pattern="elm-stuff" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="base-4.12.0.0" level="project" />
     <orderEntry type="library" name="ghc-prim-0.5.3" level="project" />
     <orderEntry type="library" name="integer-gmp-1.0.2.0" level="project" />
+    <orderEntry type="library" name="time-1.8.0.2" level="project" />
+    <orderEntry type="library" name="deepseq-1.4.4.0" level="project" />
+    <orderEntry type="library" name="array-0.5.3.0" level="project" />
+    <orderEntry type="library" name="split-0.2.3.3" level="project" />
   </component>
 </module>

@@ -1,7 +1,16 @@
+{-# OPTIONS_GHC -fwarn-incomplete-patterns #-}
+
 module Stepik_1 where
 
+import           Control.Applicative
 import           Data.Char
-import           Data.List (foldl', genericLength, unfoldr)
+import           Data.Function       ((&))
+import           Data.List           (dropWhileEnd, foldl', genericLength,
+                                      unfoldr)
+import qualified Data.List           as L
+import           Data.List.Split     (splitOn)
+import           Data.Time.Clock
+import           Data.Time.Format
 
 lenVec3 :: Float -> Float -> Float -> Float
 lenVec3 a b c = sqrt $ a ^ 2 + b ^ 2 + c ^ 2
@@ -270,12 +279,180 @@ evenOnly' =
 evenOnly :: [a] -> [a]
 --evenOnly zs = map snd . filter (even . fst) . zip [1..] $ zs
 --evenOnly = foldr (\pair rest -> if even $ fst pair then snd pair : rest else rest) [] . zip [1..]
-evenOnly (_:x:xs) = x : (evenOnly xs)
+evenOnly (_:x:xs) = x : evenOnly xs
 evenOnly _        = []
 
-revRange :: (Char, Char) -> [Char]
+revRange :: (Char, Char) -> String
 revRange = unfoldr g
   where
     g (a, z)
       | a <= z = Just (z, (a, pred z))
       | otherwise = Nothing
+
+timeToString :: UTCTime -> String
+timeToString = formatTime defaultTimeLocale "%a %d %T"
+
+data LogLevel
+  = Error
+  | Warning
+  | Info
+  deriving (Show)
+
+data LogEntry =
+  LogEntry
+    { timestamp :: UTCTime
+    , logLevel  :: LogLevel
+    , message   :: String
+    }
+
+logLevelToString :: LogLevel -> String
+logLevelToString = show
+
+logEntryToString :: LogEntry -> String
+logEntryToString (LogEntry timestamp logLevel message) =
+  timeToString timestamp ++ ": " ++ show logLevel ++ ": " ++ message
+
+data Coord a =
+  Coord a a
+  deriving (Eq, Show)
+
+distance :: Coord Double -> Coord Double -> Double
+distance (Coord x1 y1) (Coord x2 y2) = sqrt $ (x2 - x1) ^ 2 + (y2 - y1) ^ 2
+
+manhDistance :: Coord Int -> Coord Int -> Int
+manhDistance (Coord x1 y1) (Coord x2 y2) = abs (x2 - x1) + abs (y2 - y1)
+
+getCenter :: Double -> Coord Int -> Coord Double
+getCenter width (Coord x y) = Coord (width * (fromIntegral x + 0.5)) (width * (fromIntegral y + 0.5))
+
+getCell :: Double -> Coord Double -> Coord Int
+getCell width (Coord x y) = Coord (floor $ x / width) (floor $ y / width)
+
+data Error
+  = ParsingError
+  | IncompleteDataError
+  | IncorrectDataError String
+  deriving (Show)
+
+data Person =
+  Person
+    { firstName :: String
+    , lastName  :: String
+    , age       :: Int
+    }
+  deriving (Show)
+
+trim = dropWhileEnd isSpace . dropWhile isSpace
+
+safeTail :: [a] -> Maybe [a]
+safeTail []     = Nothing
+safeTail (_:xs) = Just xs
+
+parseLine :: String -> Either Error (String, String)
+parseLine str =
+  case (trim $ takeWhile (/= '=') str, fmap trim (safeTail $ dropWhile (/= '=') str)) of
+    (a, Just b)
+      | not (null a || null b) -> Right (a, b)
+    _ -> Left ParsingError
+
+maybeToEither :: a -> Maybe b -> Either a b
+maybeToEither _ (Just b) = Right b
+maybeToEither a _        = Left a
+
+parseAge :: String -> Either Error Int
+parseAge str =
+  if all isDigit str
+    then Right $ read str
+    else Left $ IncorrectDataError str
+
+parsePerson :: String -> Either Error Person
+parsePerson str = sequence (fmap parseLine (lines str)) >>= lookupPerson
+  where
+    lookupPerson entries =
+      liftA3
+        Person
+        (maybeToEither IncompleteDataError $ lookup "firstName" entries)
+        (maybeToEither IncompleteDataError $ lookup "lastName" entries)
+        (maybeToEither IncompleteDataError (lookup "age" entries) >>= parseAge)
+
+data Tree a
+  = Leaf a
+  | Node (Tree a) (Tree a)
+
+height :: Tree a -> Int
+height (Leaf _)   = 0
+height (Node a b) = 1 + max (height a) (height b)
+
+size :: Tree a -> Int
+size (Leaf _)   = 1
+size (Node a b) = 1 + size a + size b
+
+avg' :: Tree Int -> Int
+avg' t =
+  let (c, s) = go t
+   in s `div` c
+  where
+    go :: Tree Int -> (Int, Int)
+    go (Leaf a) = (1, a)
+    go (Node t1 t2) =
+      let (q1, s1) = go t1
+          (q2, s2) = go t2
+       in (q1 + q2, s1 + s2)
+
+-- rename: lookup2, empty2
+class MapLike m where
+  empty2 :: m k v
+  lookup2 :: Ord k => k -> m k v -> Maybe v
+  insert :: Ord k => k -> v -> m k v -> m k v
+  delete :: Ord k => k -> m k v -> m k v
+  fromList :: Ord k => [(k, v)] -> m k v
+  fromList []          = empty2
+  fromList ((k, v):xs) = insert k v (fromList xs)
+
+newtype ListMap k v =
+  ListMap
+    { getListMap :: [(k, v)]
+    }
+  deriving (Eq, Show)
+
+instance MapLike ListMap where
+  empty2 = ListMap []
+  lookup2 k = fmap snd . L.find ((== k) . fst) . getListMap
+  delete k (ListMap xs) = ListMap $ filter ((/= k) . fst) xs
+  insert k v m@(ListMap xs) =
+    case lookup2 k m of
+      Just _ ->
+        ListMap $
+        map
+          (\(kk, vv) ->
+             if kk == k
+               then (kk, v)
+               else (kk, vv))
+          xs
+      Nothing -> ListMap $ (k, v) : xs
+
+newtype ArrowMap k v =
+  ArrowMap
+    { getArrowMap :: k -> Maybe v
+    }
+
+instance MapLike ArrowMap where
+  empty2 = ArrowMap (const Nothing)
+  lookup2 = flip getArrowMap
+  insert k v m =
+    ArrowMap
+      (\x ->
+         if x == k
+           then Just v
+           else lookup2 x m)
+  delete k m =
+    ArrowMap
+      (\x ->
+         if x == k
+           then Nothing
+           else lookup2 x m)
+  fromList []          = empty2
+  fromList ((a, b):xs) = insert a b (fromList xs)
+
+testMap :: ArrowMap Int String
+testMap = fromList [(1, "one"), (2, "two"), (3, "three")]

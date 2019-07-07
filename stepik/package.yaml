@@ -21,6 +21,8 @@ description:         Please see the README on GitHub at <https://github.com/gith
 
 dependencies:
 - base >= 4.7 && < 5
+- time >= 1.8.0.2
+- split >= 0.2.3.3
 
 library:
   source-dirs: src
