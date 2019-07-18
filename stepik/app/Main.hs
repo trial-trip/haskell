@@ -1,10 +1,13 @@
 module Main where
 
---import           Bits
---import           Stepik_1
-import           Stepik_1_monads
-
-ff a = [a + 1, a + 2]
+--import qualified State_monad
+--import qualified Stepik_1_Bits
+--import qualified Stepik_1_monads
+--
+--import qualified Stepik_1
+--import qualified Stepik_2_1
+import qualified Stepik_2_2
 
 main :: IO ()
-main = main'
+main = do
+  print ">>="

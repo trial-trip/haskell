@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -fwarn-incomplete-patterns #-}
 
-module Bits where
+module Stepik_1_Bits where
 
 import           Data.Char
 import           Data.List        (dropWhileEnd, foldl', genericLength, unfoldr)

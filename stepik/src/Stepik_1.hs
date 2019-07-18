@@ -55,11 +55,11 @@ doubleFact' 1 = 1
 doubleFact' n = n * doubleFact' (n - 2)
 
 fibonacci :: Integer -> Integer
-fibonacci 0 = 0
-fibonacci 1 = 1
 fibonacci n
+  | n == 0 = 0
+  | n == 1 = 1
   | n > 1 = fibonacci (n - 1) + fibonacci (n - 2)
-  | n < 1 = (-1) ^ (x + 1) * fibonacci x
+  | otherwise = (-1) ^ (x + 1) * fibonacci x
   where
     x = -n
 
@@ -75,7 +75,7 @@ fibHelper current target a b
 fibonacci' :: Integer -> Integer
 fibonacci' n
   | n >= 0 = fibHelper 2 n 0 1
-  | n < 1 = (-1) ^ (-n + 1) * fibonacci' (-n)
+  | otherwise = (-1) ^ (-n + 1) * fibonacci' (-n)
 
 -- 1.6
 --𝑎0=1; 𝑎1=2; 𝑎2=3; 𝑎𝑘+3=𝑎𝑘+2+𝑎𝑘+1−2𝑎𝑘
@@ -102,10 +102,6 @@ sumNCount x = (sum', count)
     count = genericLength str
     str = show $ abs x
 
---integration :: (Double -> Double) -> Double -> Double -> Double
---integration f a b = undefined
--- integration sin pi 0
--- -2.0
 -- 2.3
 class Printable a where
   toString :: a -> String
@@ -223,7 +219,7 @@ offset n (x:xs) = offset (n - 1) xs ++ [x]
 fibStream :: [Integer]
 fibStream = 0 : 1 : zipWith (+) fibStream (tail fibStream)
 
-data Odd =
+newtype Odd =
   Odd Integer
   deriving (Eq, Show)
 
@@ -234,7 +230,7 @@ instance Enum Odd where
   enumFromTo oddX@(Odd x) oddY@(Odd y)
     | x > y = []
     | x == y = [oddX]
-    | x < y = oddX : enumFromTo (succ oddX) oddY
+    | otherwise = oddX : enumFromTo (succ oddX) oddY
   enumFromThen oddX@(Odd x) oddY@(Odd y) = oddX : enumFromThen oddY (Odd (y + y - x))
   enumFromThenTo oddX@(Odd x) oddY@(Odd y) oddZ@(Odd z) =
     if x < y
@@ -244,11 +240,11 @@ instance Enum Odd where
       enumFromThenTo1 oddX@(Odd x) oddY@(Odd y) oddZ@(Odd z)
         | x > z = []
         | x == z = [oddX]
-        | x < y = oddX : enumFromThenTo oddY (Odd (y + y - x)) oddZ
+        | otherwise = oddX : enumFromThenTo oddY (Odd (y + y - x)) oddZ
       enumFromThenTo2 oddX@(Odd x) oddY@(Odd y) oddZ@(Odd z)
         | x < z = []
         | x == z = [oddX]
-        | x > y = oddX : enumFromThenTo oddY (Odd (y + y - x)) oddZ
+        | otherwise = oddX : enumFromThenTo oddY (Odd (y + y - x)) oddZ
   fromEnum (Odd x) = fromIntegral x
   toEnum x
     | odd x = Odd (toInteger x)
@@ -454,5 +450,46 @@ instance MapLike ArrowMap where
   fromList []          = empty2
   fromList ((a, b):xs) = insert a b (fromList xs)
 
-testMap :: ArrowMap Int String
-testMap = fromList [(1, "one"), (2, "two"), (3, "three")]
+data Nat
+  = Zero
+  | Suc Nat
+  deriving (Show)
+
+fromNat :: Nat -> Integer
+fromNat Zero    = 0
+fromNat (Suc n) = fromNat n + 1
+
+add :: Nat -> Nat -> Nat
+add Zero x    = x
+add x Zero    = x
+add (Suc x) y = add x (Suc y)
+
+mul :: Nat -> Nat -> Nat
+mul Zero _    = Zero
+mul _ Zero    = Zero
+mul x (Suc y) = add x (mul x y)
+
+fac :: Nat -> Nat
+fac Zero      = Suc Zero
+fac z@(Suc x) = mul z $ fac x
+
+infixl 6 :+:
+
+infixl 7 :*:
+
+data Expr
+  = Val Int
+  | Expr :+: Expr
+  | Expr :*: Expr
+  deriving (Show, Eq)
+
+expand :: Expr -> Expr
+expand (e1 :+: e2) = expand e1 :+: expand e2
+expand ((e1 :+: e2) :*: e) = expand (expand (expand e1 :*: expand e) :+: expand (expand e2 :*: expand e))
+expand (e :*: (e1 :+: e2)) = expand (expand (expand e :*: expand e1) :+: expand (expand e :*: expand e2))
+expand (e1 :*: e2) =
+  let (a, b) = (expand e1, expand e2)
+   in if a == e1 && b == e2
+        then a :*: b
+        else expand (a :*: b)
+expand e = e
