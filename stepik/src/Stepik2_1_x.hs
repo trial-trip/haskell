@@ -1,7 +1,7 @@
 {-# LANGUAGE RankNTypes    #-}
 {-# LANGUAGE TypeOperators #-}
 
-module Stepik_2_1 where
+module Stepik2_1_x where
 
 import           Control.Applicative (Alternative (..), ZipList (..),
                                       getZipList, liftA2, (<**>))
