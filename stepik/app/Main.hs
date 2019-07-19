@@ -1,13 +1,8 @@
 module Main where
 
---import qualified State_monad
---import qualified Stepik_1_Bits
---import qualified Stepik_1_monads
---
---import qualified Stepik_1
---import qualified Stepik_2_1
-import qualified Stepik_2_2
+import qualified Stepik_2_2_1
 
 main :: IO ()
 main = do
-  print ">>="
+  print Stepik_2_2_1.foldCmpsExample1
+  print Stepik_2_2_1.foldCmpsExample2
