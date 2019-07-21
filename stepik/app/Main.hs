@@ -1,8 +1,7 @@
 module Main where
 
-import qualified Stepik2_2_1
+import qualified Stepik2_2_2
 
 main :: IO ()
 main = do
-  print Stepik2_2_1.foldCmpsExample1
-  print Stepik2_2_1.foldCmpsExample2
+  print Stepik2_2_2.currentExample
