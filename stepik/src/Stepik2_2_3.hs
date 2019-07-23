@@ -1,12 +1,13 @@
-{-# LANGUAGE RankNTypes    #-}
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE GeneralisedNewtypeDeriving #-}
+{-# LANGUAGE RankNTypes                 #-}
+{-# LANGUAGE TypeOperators              #-}
 
 module Stepik2_2_3 where
 
 import           Control.Applicative (liftA2, liftA3)
 import           Data.Foldable
+import           Data.Traversable    (fmapDefault, foldMapDefault)
 
--- Сделайте этот тип данных представителем классов типов Functor, Foldable и Traversable:
 data OddC a
   = Un a
   | Bi a a (OddC a)
@@ -40,4 +41,43 @@ cntFoldable2 = sum cnt5 -- 52
 
 cntTraversable = traverse (\x -> [x + 2, x - 2]) cnt1 -- [Un 44,Un 40]
 
-currentExample = cntTraversable
+newtype Temperature a =
+  Temperature Double
+  deriving (Num, Show, Eq, Fractional)
+
+data Celsius
+
+data Fahrenheit
+
+data Kelvin
+
+comfortTemperature :: Temperature Celsius
+comfortTemperature = Temperature 23
+
+c2f :: Temperature Celsius -> Temperature Fahrenheit
+c2f (Temperature c) = Temperature (1.8 * c + 32)
+
+k2c :: Temperature Kelvin -> Temperature Celsius
+k2c (Temperature k) = Temperature $ k - 273.15
+
+data Tree a
+  = Nil
+  | Branch (Tree a) a (Tree a)
+  deriving (Eq, Show)
+
+instance Functor Tree where
+  fmap = fmapDefault
+
+instance Foldable Tree where
+  foldMap = foldMapDefault
+
+instance Traversable Tree where
+  traverse g Nil = pure Nil
+  -- порядок зарешал, для этого сделан "flip"
+  traverse g (Branch l x r) = liftA3 (\a b c -> Branch a c b) (traverse g l) (traverse g r) (g x)
+
+testTree = Branch (Branch (Branch Nil 1 Nil) 2 (Branch Nil 3 Nil)) 4 (Branch Nil 5 Nil)
+
+postOrderExample = foldMapDefault (\x -> [x]) testTree -- [1,3,2,5,4]
+
+currentExample = postOrderExample
