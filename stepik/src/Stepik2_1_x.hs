@@ -1,3 +1,4 @@
+{-# LANGUAGE QuasiQuotes   #-}
 {-# LANGUAGE RankNTypes    #-}
 {-# LANGUAGE TypeOperators #-}
 
@@ -129,6 +130,35 @@ instance Applicative PrsE where
       case runPrsE p1 str of
         Right (f, str2) -> runPrsE (f <$> p2) str2
         Left x          -> Left x
+
+-- 2.2.4
+instance Monad PrsE where
+  p >>= f =
+    PrsE $ \str ->
+      case runPrsE p str of
+        Right (v, str2) -> runPrsE (f v) str2
+        Left x          -> Left x
+
+prsEmonadExample1 =
+  runPrsE
+    (do a <- charE 'A'
+        b <- charE 'B'
+        return (a, b))
+    "ABC" --Right (('A','B'),"C")
+
+prsEmonadExample2 =
+  runPrsE
+    (do a <- charE 'A'
+        b <- charE 'B'
+        return (a, b))
+    "ACD" --Left "unexpected C"
+
+prsEmonadExample3 =
+  runPrsE
+    (do a <- charE 'A'
+        b <- charE 'B'
+        return (a, b))
+    "BCD" --Left "unexpected B"
 
 satisfyE :: (Char -> Bool) -> PrsE Char
 satisfyE predicate = PrsE f
