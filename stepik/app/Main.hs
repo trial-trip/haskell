@@ -1,8 +1,7 @@
 module Main where
 
-import qualified Stepik2_3_1
+import qualified Stepik2_3_2
 
 main :: IO ()
 main = do
-  print Stepik2_3_1.validateSumExample1
-  print Stepik2_3_1.validateSumExample2
+  print Stepik2_3_2.failContExperiment1
